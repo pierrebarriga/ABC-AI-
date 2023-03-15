@@ -1,0 +1,102 @@
+/* Hi! This code is tied to my analytics portfolio for a fictitious company, ABC AI. You can review the dataset that I used here: https://rpubs.com/rhuebner/hrd_cb_v14 
+
+This portion of the analysis would begin once I understand the business objectives, interests from stakeholders and have secured reliable data from the project team. 
+
+Prior to uploading this dataset to SQL (BigQuery), I did the following to the data in Google Sheets: 
+1. Delete columns that were irrelevant for analysis (immigration status, marital status, etc). 
+
+2. Divided the dataset into two: Employee_info and EmpID
+- Employee_info contains information about the employee but does NOT contain the employees name in order to protect their anonymity during the analysis process. 
+- EmpID links to Employee_info using EmpID as the foreign key. This dataset also contains manager names and corresponding manager ID. 
+- Important to note that I would make sure to keep an original copy of the data to validate in later stages of the process. 
+
+3. Validated data types in Google Sheets 
+
+The following two queries deleted employees that were no longer employed by ABC AI */
+
+SELECT 
+DISTINCT(EmploymentStatus)
+FROM Employee_info;
+
+DELETE FROM Employee_info
+WHERE EmploymentStatus IS NOT 'ACTIVE'
+
+/* Used these queries to ensure that categorical variables were consistenly labeled */ 
+
+SELECT 
+DISTINCT(RaceDesc)
+FROM Employee_info;
+
+SELECT 
+DISTINCT(RecruitmentSource)
+FROM Employee_info;
+
+SELECT 
+DISTINCT(Sex)
+FROM Employee_info;
+
+/* Used this query to see if there were any NULL values in the columns that I will be using during analysis. */
+
+SELECT 
+*
+FROM Employee_Info
+WHERE GenderID IS NULL OR RaceDesc IS NULL OR RecruitmentSource IS NULL;
+
+
+/* This query returned how large each department size was, which informed if I should group departments together and also informed some calculations I made later on in the analysis process*/ 
+
+SELECT 
+Department,
+COUNT(*) as Number_of_Employees
+FROM Employee_info
+GROUP BY Department
+ORDER BY Number_of_Employees DESC;
+
+/* In order to save space, I'll include the SQL code that I used to calculate for one department. I used the same queries but simply updated the WHERE clause to change the department that I was focused on analyzing. */
+
+/* Objective 1: Which Recruitment Sources should ABC AI continue to invest in? */ 
+
+/* The following query allowed me to segment the employees in IT and Software Engineering by Recruitment Source. */
+
+SELECT  
+Distinct(RecruitmentSource),
+Count(*) As Number_of_employees
+FROM Employee_info 
+WHERE Department = "IT/IS" OR Department = "Software Engineering"
+GROUP BY RecruitmentSource;
+
+/* Objective 2: Create a baseline dashboard on race and gender representation which would inform ABC AI’s recruitment strategy. The following query created a variable of gender_count (I operated under the assumption that the authors used gender and sex interchangeably, I would confirm this assumption with the stakeholders if this was a real engagement), I then saved the view and calculated the percentage of employees by department */ 
+
+SELECT 
+Distinct(Sex),
+Count(*) As Number_of_employees
+FROM Employee_info
+WHERE Department = "IT/IS" OR Department = "Software Engineering"
+Group BY Sex;
+
+/* The number 47 below was based on the department size from the previous query */ 
+
+SELECT 
+Sex,
+Round((Number_of_employees/47)*100, 2) AS Percentage_of_Department
+FROM New_View.Employee_info
+
+/* After repeating steps above for all departments, I grouped employees by race. As a reminder, I seperated employee names into another table to protect their anonymity during this process. */
+
+SELECT 
+RaceDesc,
+COUNT(*) As Num_of_employees
+FROM Employee_info 
+WHERE Department = "IT/IS" OR Department = "Software Engineering"
+GROUP BY RaceDesc; 
+
+SELECT  
+RaceDesc,
+Round((Num_of_employees/47)*100, 2) AS Percentage_of_Department
+FROM Employee_info; 
+
+/* I repeated this step above with other departments, saved the views and queries then exported the tables as CSV files. Afterwards, I imported the cleaned and aggregated datasets into Tableau for the dashboards. 
+
+Thank you for reading! I'm always looking for feedback, especially as I continue to sharpen my abilities with SQL and Tableau. Please do not hesitate to reach out if you have any feedback! */ 
+
+
